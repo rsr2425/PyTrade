@@ -2,6 +2,16 @@
 dsiadsbihfsabhifdsbasfi
 """
 
+from secret import api_key, api_secret
+
+from coinbase.wallet.client import Client
+from time import sleep
+
+import matplotlib.pyplot as plt
+import json
+import numpy as np
+import pandas as pd
+
 # environment setup
 t = 1
 start_val = 10 ** 6
