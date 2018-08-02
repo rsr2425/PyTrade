@@ -12,6 +12,8 @@ import json
 import numpy as np
 import pandas as pd
 
+client = Client(api_key, api_secret)
+
 # environment setup
 t = 1
 start_val = 10 ** 6
