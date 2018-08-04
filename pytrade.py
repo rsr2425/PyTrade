@@ -26,6 +26,8 @@ ap.add_argument("-a", "--avg", required=True,
                 help="averaging period")
 ap.add_argument("-u", "--unit", required=True,
                 help="unit of crypto currency for each transaction")
+ap.add_argument("-l", "--log", required=False,
+                help="name of log file")
 
 args = vars(ap.parse_args())
 
@@ -35,13 +37,17 @@ spread = float(args["spread"])
 risk_tol = float(args["risk"])
 tdelta = int(args["avg"])
 unit = int(args["unit"])
-log_file = f"log_{currency}.csv"
+if args["log"] is not None:
+    log_file = args["log"]
+else:
+    log_file = f"log_{currency}.csv"
 currency_pair=f'{currency}-USD'
 
 # environment setup
 t = 1
 start_val = 10 ** 6
-act = {'dol': start_val, currency: 0, 'net': 0}
+act = {'dol': start_val, currency: 0, 'net': 0
+      , 'fees': 0, 'spent': 0, 'gains': 0, 'profit': 0}
 last = 0
 fee_pc = 0.0025
 day = dt.datetime.now()
@@ -55,14 +61,17 @@ spot_price = float(data['amount'])
 prices.append(spot_price)
 coin_num = unit * 5
 order_amount = spot_price * coin_num
-order_tot = order_amount * (1 + fee_pc)
+fee = order_amount * fee_pc
+order_tot = order_amount + fee
 act['dol'] -= order_tot
 act[currency] += coin_num
 act['net'] = act['dol'] + act[currency] * spot_price
+act['fees'] += fee
+act['spent'] += order_amount
 
 file = open(log_file, "w+")
 file.write(f"t,spot_price,act_dol,act_{currency},net_worth,profit,threshold,target_price,"
-           f"price_gap\n")
+           f"price_gap,fees,spent,gains,profit\n")
 file.close()
 
 #pdb.set_trace()
@@ -80,7 +89,8 @@ while True:
             prices.append(spot_price)
             coin_num = unit
             order_amount = spot_price * coin_num
-            order_tot = order_amount * (1 + fee_pc)
+            fee = order_amount * fee_pc
+            order_tot = order_amount + fee
 
             thres = spot_price * (fee_pc + spread)
 
@@ -94,28 +104,37 @@ while True:
                 currency] * spot_price) / act['net'] < risk_tol:
                 act['dol'] -= order_tot
                 act[currency] += coin_num
+                act['fees'] += fee
+                act['spent'] += order_amount
+
 
             # sell
             if target_price + thres < spot_price and act[currency] > coin_num:
-                act['dol'] += order_amount * (1 - fee_pc)
+                act['dol'] += order_amount *(1 - fee_pc)
+                act['fees'] += order_amount * fee_pc
                 act[currency] -= coin_num
+                act['gains'] += order_amount
 
             # update total net worth
             act['net'] = act['dol'] + act[currency] * spot_price
+            act['profit'] = act['gains'] - act['fees']
 
             print(f'Currently trading: {currency}...')
             print(f'timestep: {t}, spot price: ${spot_price:,.2f}, account: ${act}')
             print(f'threshold: ${thres:,.2f}')
             print(f'target price: ${target_price:,.2f}')
-            print(f'price gap: ${spot_price-target_price:,.2f}')
-            print(
-                f"Profit: ${float(act['net'])-start_val:,.2f}, {(float(act['net'])-start_val)/start_val:,.2f}%")
+            print(f'spot-target: ${spot_price-target_price:,.2f}')
+            print(f"Unrealized gains: ${float(act['net'])-start_val:,.2f},"
+                f"{(float(act['net'])-start_val)/start_val:,.2f}%")
+            print(f"EBITDA: {act['profit']}")
             print('*' * 50)
 
             # log data in csv file
             file = open(log_file, 'a')
             file.write(
-                f"{t},{spot_price:,.2f},{act['dol']},{act[currency]},{act['net']},{float(act['net'])-start_val},{thres},{target_price},{spot_price-target_price}\n"
+                f"{t},{spot_price:,.2f},{act['dol']},{act[currency]},{act['net']},"
+                f"{float(act['net'])-start_val},{thres},{target_price},{spot_price-target_price},"
+                f"{act['fees']},{act['spent']},{act['gains']},{act['profit']}\n"
             )
             file.close()
 
