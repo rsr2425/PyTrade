@@ -126,7 +126,8 @@ while True:
             print(f'spot-target: ${spot_price-target_price:,.2f}')
             print(f"Unrealized gains: ${float(act['net'])-start_val:,.2f},"
                 f"{(float(act['net'])-start_val)/start_val:,.2f}%")
-            print(f"EBITDA: {act['profit']}")
+            print(f"EBITDA: {act['profit']}, "
+                  f"{float(act['profit'])/start_val:,.2f}%")
             print('*' * 50)
 
             # log data in csv file
