@@ -96,7 +96,7 @@ while True:
                 act[currency] += coin_num
 
             # sell
-            if target_price + 5 * thres < spot_price and act[currency] > coin_num:
+            if target_price + thres < spot_price and act[currency] > coin_num:
                 act['dol'] += order_amount * (1 - fee_pc)
                 act[currency] -= coin_num
 
