@@ -117,7 +117,7 @@ while True:
 
             # update total net worth
             act['net'] = act['dol'] + act[currency] * spot_price
-            act['profit'] = act['gains'] - act['fees']
+            act['profit'] = act['gains'] - act['spent'] - act['fees']
 
             print(f'Currently trading: {currency}...')
             print(f'timestep: {t}, spot price: ${spot_price:,.2f}, account: ${act}')
