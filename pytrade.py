@@ -143,10 +143,12 @@ while True:
             t += 1
         else:
             day = today
-            coin_num = act['eth']
+            coin_num = act[currency]
             order_amount = spot_price * coin_num
             act['dol'] += order_amount * (1 - fee_pc)
+            act['fees'] += order_amount * fee_pc
             act[currency] -= coin_num
+            act['gains'] += order_amount
     except OSError as e:
         print(f"Exception {e} encountered.")
     sleep(30)
