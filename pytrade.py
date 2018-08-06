@@ -28,6 +28,8 @@ ap.add_argument("-u", "--unit", required=True,
                 help="unit of crypto currency for each transaction")
 ap.add_argument("-l", "--log", required=False,
                 help="name of log file")
+ap.add_argument("-b", "--buy_mult", required=False,
+                help="multiplier for buy threshold")
 
 args = vars(ap.parse_args())
 
@@ -37,6 +39,7 @@ spread = float(args["spread"])
 risk_tol = float(args["risk"])
 tdelta = int(args["avg"])
 unit = int(args["unit"])
+buy_mult = args["buy_mult"]
 if args["log"] is not None:
     log_file = args["log"]
 else:
@@ -100,7 +103,8 @@ while True:
                 target_price = np.average(prices[t - tdelta:t])
 
             # buy
-            if target_price - thres > spot_price and act['dol'] > order_tot and (order_amount + act[
+            if target_price - buy_mult * thres > spot_price and act['dol'] > order_tot and (
+                    order_amount + act[
                 currency] * spot_price) / act['net'] < risk_tol:
                 act['dol'] -= order_tot
                 act[currency] += coin_num
