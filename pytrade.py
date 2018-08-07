@@ -12,6 +12,7 @@ import json
 import numpy as np
 import datetime as dt
 import pdb
+import time
 
 client = Client(api_key, api_secret)
 
@@ -39,7 +40,7 @@ spread = float(args["spread"])
 risk_tol = float(args["risk"])
 tdelta = int(args["avg"])
 unit = int(args["unit"])
-buy_mult = args["buy_mult"]
+buy_mult = int(args["buy_mult"])
 if args["log"] is not None:
     log_file = args["log"]
 else:
@@ -73,7 +74,7 @@ act['fees'] += fee
 act['spent'] += order_amount
 
 file = open(log_file, "w+")
-file.write(f"t,spot_price,act_dol,act_{currency},net_worth,profit,threshold,target_price,"
+file.write(f"t,spot_price,datetime,act_dol,act_{currency},net_worth,profit,threshold,target_price,"
            f"price_gap,fees,spent,gains,profit\n")
 file.close()
 
@@ -137,7 +138,7 @@ while True:
             # log data in csv file
             file = open(log_file, 'a')
             file.write(
-                f"{t},{spot_price:,.2f},{act['dol']},{act[currency]},{act['net']},"
+                f"{t},{spot_price:,.2f},{dt.datetime.now()},{act['dol']},{act[currency]},{act['net']},"
                 f"{float(act['net'])-start_val},{thres},{target_price},{spot_price-target_price},"
                 f"{act['fees']},{act['spent']},{act['gains']},{act['profit']}\n"
             )
