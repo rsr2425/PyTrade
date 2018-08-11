@@ -53,7 +53,7 @@ start_val = 10 ** 6
 act = {'dol': start_val, currency: 0, 'net': 0
       , 'fees': 0, 'spent': 0, 'gains': 0, 'profit': 0}
 last = 0
-fee_pc = 0.0025
+fee_pc = 0.00
 day = dt.datetime.now()
 
 prices = []
