@@ -1,5 +1,6 @@
 """
-dsiadsbihfsabhifdsbasfi
+Basic script that serves as a proof of concept for simulating trading
+via the coinbase API.
 """
 
 from secret import api_key, api_secret
