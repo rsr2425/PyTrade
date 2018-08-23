@@ -26,6 +26,7 @@ class CoinbaseBot(Bot):
         # # right now this is sloppy
         try:
             res = client.get_spot_price(currency_pair=self.currency_pair)
-        except:
             data = json.loads(str(res))
             return {"spot_price":(data['amount']), }
+        except:
+            pass

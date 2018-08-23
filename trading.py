@@ -128,9 +128,13 @@ class Bot(object):
             print(f'Portfolio {i}: {p}')
 
     def timestep(self):
-        self.t += 1
-
         data = self._data_pull()
+
+        # only considered a timestep if data is received
+        if not data:
+            return None
+
+        self.t += 1
         for p in self.portfolios:
             p.timestep(data)
         self._log()
