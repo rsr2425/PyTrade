@@ -13,22 +13,22 @@ class Strategy(object):
     Determines when to buy/sell assets.  Base class all actual strategy classes should
     inherit from.
     """
-    def buy(self, data):
+    def buy(self, **data):
         """
         Decides whether to buy assst based on provided data.
 
         Returns:
             The number of assets to buy, or 0 for no buys.
         """
-        pass
+        raise NotImplementedError()
 
-    def sell(self, data):
+    def sell(self, **data):
         """
         Decides whether to sell asset based on provided data.
         Returns:
             The number of assets to buy, or 0 for no sells.
         """
-        pass
+        raise NotImplementedError()
 
 class Portfolio(object):
     """
@@ -45,19 +45,21 @@ class Portfolio(object):
         self.t = 0
         self.active = True # not used right now
         self.fees = 0
+        self.last_sp = 0
+        self.title = "t, spot_price, cash, pos, fees"
+
+        with open(logfile, 'w+') as f:
+            f.write(self.title)
+            f.close()
 
     def __str__(self):
-        raise NotImplementedError()
-
+        return f'{self.t}, {self.last_sp}, {self.cash}, {self.position}, {self.fees}'
 
     def trade(self, sp, order_num):
         """
         Execute trade based off of order. Negative order_num means sell
         Args:
             order_num: float of coins to be exchanged in transaction
-
-        Returns:
-
         """
         # flip sign to reflect cash flow movement based on buying versus selling
         # fee is paid separately from order
@@ -68,6 +70,9 @@ class Portfolio(object):
 
         # adjust position to reflect transaction
         self.position += order_num
+
+        # keep tracks of fees paid
+        self.fees += fee
 
     def timestep(self, data):
         """
@@ -80,23 +85,29 @@ class Portfolio(object):
         data["cash"] = self.cash
         data["position"] = self.position
 
-        buy_num = self.strat.buy(data)
-        sell_num = self.strat.sell(data)
+        buy_num = self.strat.buy(**data)
+        sell_num = self.strat.sell(**data)
 
-        sp = data["spot_price"]
+        sp = data["spot_price"] = float(data["spot_price"])
+        self.last_sp = sp
 
         self.trade(sp, buy_num - sell_num)
 
-        self._log()
+        self._log(**data)
 
     def toggle_trading(self):
         """
         Switches portfolio between active and non-active for trading.
         """
-        raise NotImplementedError
-
-    def _log(self):
         raise NotImplementedError()
+
+    def _log(self, **data):
+        if not self.logfile:
+            raise FileNotFoundError()
+
+        with open(self.logfile, 'w+') as f:
+            f.write(self.__str__())
+            f.close()
 
 class Bot(object):
     """
@@ -106,24 +117,38 @@ class Bot(object):
     def __init__(self, logfile='test.csv'):
         self.portfolios = []
         self.logfile = logfile
+        self.t = 0
 
     def summary(self):
         """
         Prints information about each portfolio in the bot.
         """
-        for i, p in enumerate(self.portfolios): print(p)
+        for i, p in enumerate(self.portfolios):
+            print(f'\t\t\t {p.title}')
+            print(f'Portfolio {i}: {p}')
 
     def timestep(self):
+        self.t += 1
+
         data = self._data_pull()
         for p in self.portfolios:
             p.timestep(data)
-        self._log(self)
+        self._log()
+        print('*'*50 + '\n')
+        self.summary()
 
-    def add_port(self, strat, start_cash):
-        self.portfolios.append(Portfolio(strat, start_cash))
+    def add_port(self, strat, start_cash, logfile=None):
+        if not logfile:
+            logfile = f'portfolio_{len(self.portfolios)+1}.csv'
+        self.portfolios.append(Portfolio(strat, start_cash, logfile))
 
-    def _log(self):
-        raise NotImplementedError("Bot log function")
+    def _log(self, **data):
+        pass
 
     def _data_pull(self):
+        """
+        Pulls data from the exchange API.
+        Returns:
+            Dictionary of price/currency data from exchange.
+        """
         raise NotImplementedError("Bot data pull function")
