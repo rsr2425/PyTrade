@@ -21,7 +21,8 @@ class ContraStrat(Strategy):
         if len(self.lagged_prices) < self.n:
             self.lagged_prices.append(spot_price)
             return 0
-        avg = np.mean(self.lagged_prices)
+        print(self.lagged_prices)
+        avg = np.mean(map(int, self.lagged_prices))
         price_move = spot_price - avg
 
         thres = spot_price * (fee_pc + self.spread)
